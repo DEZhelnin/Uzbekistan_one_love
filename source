@@ -1,0 +1,112 @@
+#include <iostream>
+#include <fstream>
+#include "Header.h"
+using namespace std;
+
+void show_content();
+void show_menu();
+void show_header();
+
+void main() {
+	cout << "Content-type: text/html; charset=Windows-1251\n\n";
+	ifstream f("_index");
+	if (f.is_open())
+	{
+		auto sz = 65536;
+		auto buf = new char[sz];
+		while (!f.eof()) {
+			f.getline(buf, sz);
+			if (strcmp(buf, "<!--#content#-->") == 0) {
+				show_content();
+			}
+			else if (!strcmp(buf, "<!--#menu#-->"))
+			{
+				show_menu();
+			}
+			else if (!strcmp(buf, "<!--#header#-->"))
+			{
+				show_header();
+			}
+			cout << buf;
+		}
+		delete[] buf;
+		f.close();
+	}
+	else {
+		cout << "Не удалось вывести страницу";
+	}
+}
+void show_header()
+{
+	cout << "Главная страница";
+}
+void show_menu()
+{
+	ifstream f("menu");
+	if (f.is_open())
+	{
+		auto sz = 1024;
+		auto buf = new char[sz];
+		while (!f.eof())
+		{
+			f.getline(buf, sz);
+			char* name;
+			char* addrr = strtok_s(buf, " ", &name);
+			cout << "<div class='menu-item'>"
+				"<a href='" << addrr << "'>" <<
+				name << "</a>"
+				"</div>";
+		}
+	}
+	f.close();
+}
+void show_content()
+{
+	char* val1 = new char[11];
+	char* val2 = new char[11];
+	char* val3 = new char[11];
+	cout << "<form method='get' action='first.cgi'>";
+	cout << "Начало отрезка: <input type='text' name='num1' maxlength='50' size='50'><br>";
+	cout << "Конец отрезка: <input type='text' name='num2' maxlength='50' size='50'><br>";
+	cout << "На сколько частей делить отрезок?: <input type='text' name='num3' maxlength='50' size='50'><br>";
+	cout << "<input type='submit' value='Отправить'>";
+	cout << "</form>";
+#ifndef _DEBUG
+	char* data = nullptr;
+	get_form_data(data);
+#else
+	const char* data = "imya=Sergey&email=a%40b.ru";
+#endif
+	if (data && strlen(data) > 0)
+	{
+		//cout << "<div>" << data << "</div>";
+		char* value = nullptr;
+		get_param_value(value, "num1", data);
+		//val1 = value;
+		double a = atoi(value);
+		//cout << "<div>" << a << "</div>";
+		get_param_value(value, "num2", data);
+		//val2 = value;
+		double b = atoi(value);
+		//cout << "<div>" << b << "</div>";
+		get_param_value(value, "num3", data);
+		//val3 = value;
+		double c = atoi(value);
+		//cout << "<div>" << c << "</div>";
+
+		if (b > a && c!=0) {
+			int i = 1;
+			cout << "<div x0 =>" << a << "</div>";
+			for (i; i < c; i++) {
+				double g = a+ i*(b-a)/c;
+				cout << "<div x" << i << "= >" << g << "</div>";
+			}
+			cout << "<div x"<<i<<"= >" <<b<< "</div>";
+		}
+		else
+		{
+			cout << "<div> Второе число должно быть больше первого или третье не ноль</div>";
+		}
+	}
+	delete[] data;
+}
